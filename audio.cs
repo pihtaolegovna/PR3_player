@@ -1,5 +1,7 @@
-﻿using System;
+﻿using PR3_player;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using TagLib;
 
@@ -10,10 +12,11 @@ public class audio
     public TagLib.File File { get; set; }
     public string Artist { get; set; }
     public string Album { get; set; }
-    public uint Year { get; set; }
+    public uint Year { get; set; } // Тег года читается в 32 бита
     public IPicture[] Cover { get; set; }
+    public string nowtimer { get; set; }
 
-    public static List<audio> all = new List<audio>();
+    public static BindingList<audio> all = new BindingList<audio>();
 
     public static List<string> allnames = new List<string>();
     public static List<string> allabsolutepaths = new List<string>();
@@ -31,19 +34,15 @@ public class audio
         FilePath = filePath;
         FileName = Path.GetFileNameWithoutExtension(filePath);
 
+
         File = TagLib.File.Create(filePath);
         if (File.Tag != null)
         {
             Artist = File.Tag.FirstAlbumArtist;
             Album = File.Tag.Album;
             Year = File.Tag.Year;
+            Year = File.Tag.Year;
             Cover = File.Tag.Pictures;
-        }
-        else
-        {
-            Artist = "Неизвестный исполнитель";
-            Album = "Неизвестный Альбом";
-            Year = 0000;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.WindowsAPICodePack.Dialogs;
+using Microsoft.WindowsAPICodePack.Shell;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,10 +8,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Linq;
-
 using System.Windows.Media.Imaging;
-using System.Windows.Data;
-using TagLib.Asf;
+using System.Windows.Threading;
+using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 
 namespace PR3_player
 {
@@ -19,10 +19,11 @@ namespace PR3_player
     /// </summary>
     public partial class MainWindow : Window
     {
-        public static MediaPlayer mediaPlayer = new MediaPlayer();
+        static List<int> AlreadyPlayedSongs = new List<int>();
         static int songpathindex = 0;
         static bool NowPlaying;
-        private bool isDragging = false;
+        static string songpath = "";
+        TimeSpan timespan;
 
         public MainWindow()
         {
@@ -30,7 +31,6 @@ namespace PR3_player
             StateChanged += MainWindowStateChangeRaised;
 
             Settings.Load();
-            Binding binding = new Binding();
 
 
             setview(false, false);
@@ -38,72 +38,68 @@ namespace PR3_player
 
 
         }
-
         // Can execute
         private void CommandBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = true;
         }
-
         // Minimize
         private void CommandBinding_Executed_Minimize(object sender, ExecutedRoutedEventArgs e)
         {
             SystemCommands.MinimizeWindow(this);
         }
-
         // Maximize
         private void CommandBinding_Executed_Maximize(object sender, ExecutedRoutedEventArgs e)
         {
             SystemCommands.MaximizeWindow(this);
         }
-
         // Restore
         private void CommandBinding_Executed_Restore(object sender, ExecutedRoutedEventArgs e)
         {
             SystemCommands.RestoreWindow(this);
         }
-
         // Close
         private void CommandBinding_Executed_Close(object sender, ExecutedRoutedEventArgs e)
         {
             Settings.Save();
             SystemCommands.CloseWindow(this);
         }
-
         // State change
         private void MainWindowStateChangeRaised(object sender, EventArgs e)
         {
             if (WindowState == WindowState.Maximized)
             {
-                MainWindowBorder.BorderThickness = new Thickness(8);
                 RestoreButton.Visibility = Visibility.Visible;
                 MaximizeButton.Visibility = Visibility.Collapsed;
             }
             else
             {
-                MainWindowBorder.BorderThickness = new Thickness(0);
                 RestoreButton.Visibility = Visibility.Collapsed;
                 MaximizeButton.Visibility = Visibility.Visible;
             }
         }
-
         private void Theme_Changer(object sender, RoutedEventArgs e)
         {
             setview(false, true);
             
         }
-
         private void FolderOpening(object sender, RoutedEventArgs e)
         {
-
-            openfolder("");
+            openfolder("l");
         }
-
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            search();
+            if (Finder.Text != "Поиск") search();
         }
-
+        private static TimeSpan TimeSpanExtractor(string filePath)
+        {
+            using (var shell = ShellObject.FromParsingName(filePath))
+            {
+                IShellProperty prop = shell.Properties.System.Media.Duration;
+                var t = (ulong)prop.ValueAsObject;
+                return TimeSpan.FromTicks((long)t);
+            }
+        }
         public void search()
         {
             string searchQuery = Finder.Text.ToLower();
@@ -116,70 +112,73 @@ namespace PR3_player
 
             audioListBox.ItemsSource = searchResults;
         }
-
         private void changeColor(object sender, RoutedEventArgs e)
         {
             setview(true, false);
-
         }
-        private void setview(bool colorchange, bool themechange)
+        public void setview(bool colorchange, bool themechange)
         {
             var NowBackground = Settings.ChangeTheme(themechange);
             var NowColor = Settings.ChangeColor(colorchange);
+
+            Finder.Text = null;
 
             Finder.Text = "Поиск";
             parentContainer.Background = NowBackground;
             header.Foreground = NowColor;
 
-            foreach (var ListBox in parentContainer.Children.OfType<ListBox>())
+            foreach (var ListBox in List.Children.OfType<ListBox>())
             {
                 ListBox.Foreground = NowColor;
             }
 
-            foreach (var TextBox in parentContainer.Children.OfType<TextBox>())
+            foreach (var TextBox in List.Children.OfType<TextBox>())
             {
                 TextBox.Foreground = NowColor;
                 TextBox.Background = NowBackground;
             }
 
-            foreach (var TextBlock in parentContainer.Children.OfType<TextBlock>())
+            foreach (var TextBlock in List.Children.OfType<TextBlock>())
             {
                 TextBlock.Foreground = NowColor;
             }
 
-            foreach (var button in parentContainer.Children.OfType<Button>())
+            foreach (var button in List.Children.OfType<Button>())
             {
                 button.Background = NowBackground;
                 button.Foreground = NowColor;
                 button.BorderBrush = Brushes.Transparent;
             }
-            foreach (var ListBox in AppArea.Children.OfType<ListBox>())
+            foreach (var ListBox in Player.Children.OfType<ListBox>())
             {
                 ListBox.Foreground = NowColor;
             }
 
-            foreach (var TextBox in AppArea.Children.OfType<TextBox>())
+            foreach (var TextBox in Player.Children.OfType<TextBox>())
             {
                 TextBox.Foreground = NowColor;
                 TextBox.Background = NowBackground;
             }
 
-            foreach (var TextBlock in AppArea.Children.OfType<TextBlock>())
+            foreach (var TextBlock in Player.Children.OfType<TextBlock>())
             {
                 TextBlock.Foreground = NowColor;
             }
 
-            foreach (var button in AppArea.Children.OfType<Button>())
+            foreach (var button in Player.Children.OfType<Button>())
             {
                 button.Background = NowBackground;
                 button.Foreground = NowColor;
                 button.BorderBrush = Brushes.Transparent;
             }
+            progress.Foreground = NowColor;
+            if (!Settings.Shuffle) Shuffle.Foreground = Brushes.Gray;
+            if (!Settings.Repeat) Shuffle.Foreground = Brushes.Gray;
 
         }
         private void openfolder(string path)
         {
-            if (path == "")
+            if (path == "l")
             {
                 // Открытие диалога выбора папки
                 var dialog = new CommonOpenFileDialog
@@ -188,10 +187,11 @@ namespace PR3_player
                 };
                 dialog.Title = "Выберите папку с музыкой";
 
+
                 if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
                 {
                     // Список расширений файлов, которые мы хотим прочитать
-                    var fileExtensions = new List<string> { ".mp3", ".wav", ".flac" };
+                    var fileExtensions = new List<string> { ".mp3", ".wav", ".flac", ".mp4" };
 
                     // Чтение файлов из выбранной папки с заданными расширениями
                     foreach (string file in Directory.GetFiles(dialog.FileName))
@@ -210,7 +210,15 @@ namespace PR3_player
 
                     foreach (audio item in audio.all)
                     {
-                        audio.allnames.Add(item.FileName);
+                        var ArtistNameText = item.Artist ?? "Unknown Artist";
+                        var AlbumNameText = item.Album ?? "Unknown Album";
+                        var YearText = item.Year.ToString() ?? "Unknown Year";
+                        audio.allnames.Add(item.FileName + "\n" + ArtistNameText + "\n" + AlbumNameText + " × " + YearText);
+                    }
+                    audioListBox.ItemsSource = audio.allnames;
+                    foreach (audio item in audio.all)
+                    {
+                        audio.allabsolutepaths.Add(item.FilePath);
                     }
                     audioListBox.ItemsSource = audio.allnames;
                 }
@@ -218,7 +226,7 @@ namespace PR3_player
             else
             {
                 // Список расширений файлов, которые мы хотим прочитать
-                var fileExtensions = new List<string> { ".mp3", ".wav", ".flac" };
+                var fileExtensions = new List<string> { ".mp3", ".wav", ".flac", ".mp4" };
 
                 // Чтение файлов из выбранной папки с заданными расширениями
                 foreach (string file in Directory.GetFiles(path))
@@ -236,7 +244,10 @@ namespace PR3_player
 
                 foreach (audio item in audio.all)
                 {
-                    audio.allnames.Add(item.FileName);
+                    var ArtistNameText = item.Artist ?? "Unknown Artist";
+                    var AlbumNameText = item.Album ?? "Unknown Album";
+                    var YearText = item.Year.ToString() ?? "Unknown Year";
+                    audio.allnames.Add(item.FileName + "\n" + ArtistNameText + "\n" + AlbumNameText + " × " + YearText);
                 }
                 foreach (audio item in audio.all)
                 {
@@ -246,16 +257,21 @@ namespace PR3_player
             }
             ine(audio.allabsolutepaths[songpathindex]);
         }
-
-
         public void ine(string path)
         {
-            mediaPlayer.Open(new Uri(path, UriKind.Absolute));
+            mediaPlayer.Source = new Uri(path, UriKind.Absolute);
+
+            
+
+
+            slider.Value = 0;
+
 
             foreach (audio item in audio.all)
             {
                 if (item.FilePath == path)
                 {
+                    songpath = item.FilePath;
                     SongName.Text = item.FileName;
                     ArtistName.Text = item.Artist ?? "Unknown Artist";
                     AlbumName.Text = item.Album ?? "Unknown Album";
@@ -277,44 +293,62 @@ namespace PR3_player
                     {
                         SongImage.Source = null;
                     }
-
-
                 }
-                
             }
 
-            // устанавливаем максимальное значение для Slider
-            mediaPlayer.Play();
 
-            // задаем обработчик события для перемотки
 
-            
+            if (!NowPlaying) // Если нажата пауза, при переключении песни мы не воспроизводим ее
+            {
+                mediaPlayer.Play();
+            }
+
+
+            timespan = TimeSpanExtractor(songpath);
+
+
+
+
+            int seconds = Convert.ToInt32(timespan.TotalSeconds);
+            int minutes = seconds / 60;
+            seconds %= 60;
+            EndTimer.Text = $"{minutes}:{(seconds < 10 ? $"0{seconds}" : $"{seconds}")}";
+
+            progress.Maximum = Convert.ToInt64(timespan.Ticks);
+
+
+            DispatcherTimer dispatcherTimer = new DispatcherTimer();
+            dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 0);
+            dispatcherTimer.Start();
+            NowTimer.Text = "0:00";
+
+
         }
+        public void dispatcherTimer_Tick(object sender, EventArgs e)
+        {
+            int seconds = Convert.ToInt32(mediaPlayer.Position.TotalSeconds);
+            int minutes = seconds / 60;
+            seconds %= 60;
+            NowTimer.Text = $"{minutes}:{(seconds < 10 ? $"0{seconds}" : $"{seconds}")}";
 
+            progress.Value = mediaPlayer.Position.Ticks;
+
+            CommandManager.InvalidateRequerySuggested();
+        }
         private void Next_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                ine(audio.allabsolutepaths[songpathindex += 1]);
-            }
-            catch
-            {
-                ine(audio.allabsolutepaths[songpathindex -= 1]);
-            }
+            PlayNextSong();
         }
-
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                ine(audio.allabsolutepaths[songpathindex += 1]);
-            }
+            try { ine(audio.allabsolutepaths[songpathindex += 1]); }
             catch
             {
-                ine(audio.allabsolutepaths[songpathindex -= 1]);
+                try { ine(audio.allabsolutepaths[songpathindex += 1]); }
+                catch { ine(audio.allabsolutepaths[songpathindex += 1]);}
             }
-        }
-
+        } 
         private void Pause_Click(object sender, RoutedEventArgs e)
         {
             if (NowPlaying)
@@ -331,8 +365,6 @@ namespace PR3_player
             }
             
         }
-        
-
         private void audioListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
@@ -346,50 +378,116 @@ namespace PR3_player
 
             }
         }
-
         private void Finder_GotFocus(object sender, RoutedEventArgs e)
         {
-            Finder.Text = null;
-        }
+            if (Finder.Text == "Поиск") Finder.Text = null; // Очищаем поиск от "Поиск" при нажатии, но при условии, что он никак не был задействован. Иначе список будет пустым
 
-        private void slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            TimeSpan ts = new TimeSpan(0, 0, (int)e.NewValue);
-            
-            mediaPlayer.Position = ts;
         }
-
-        private void audioSlider_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            isDragging = true;
-            mediaPlayer.Pause();
-        }
-
-        private void audioSlider_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            isDragging = false;
-            mediaPlayer.Position = TimeSpan.FromSeconds(slider.Value);
-            mediaPlayer.Play();
-        }
-
-        private void audioSlider_PreviewMouseMove(object sender, MouseEventArgs e)
-        {
-            if (isDragging)
-            {
-                mediaPlayer.Position = TimeSpan.FromSeconds(slider.Value);
-            }
-        }
-        void mediaPlayer_MediaOpened(object sender, EventArgs e)
-        {
-            slider.Maximum = Convert.ToInt64(mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds);
-        }
-
         void mediaPlayer_MediaEnded(object sender, EventArgs e)
         {
-            mediaPlayer.Stop();
             slider.Value = 0;
+            if (Settings.Repeat)
+            {
+                ine(songpath);
+            }
+            else PlayNextSong();
+        }
+        private void Shuffle_Click(object sender, RoutedEventArgs e)
+        {
+            
+
+            if (Settings.Shuffle) {
+                Shuffle.Foreground = Brushes.Gray;
+                Settings.Shuffle = false;
+            }
+            else
+            {
+                Shuffle.Foreground = Settings.Color;
+                Settings.Shuffle = true;
+            }
+            AlreadyPlayedSongs.Clear();
+        }
+        private void Repeat_Click(object sender, RoutedEventArgs e)
+        {
+            if (Settings.Repeat)
+            {
+                Repeat.Foreground = Brushes.Gray;
+                Settings.Repeat= false;
+                AlreadyPlayedSongs.Clear();
+            }
+            else
+            {
+                Repeat.Foreground = Settings.Color;
+                Settings.Repeat = true;
+            }
+            
+        }
+        private void slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            mediaPlayer.Position = new TimeSpan(Convert.ToInt64(slider.Value));
+            progress.Value  = mediaPlayer.Position.Ticks;
+        }
+        private void mediaPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+        {
+            mediaPlayer.Stop();
+            if (!Settings.Repeat) PlayNextSong();
+        }
+        private void mediaPlayer_MediaOpened(object sender, RoutedEventArgs e)
+        {
+            if (mediaPlayer.NaturalDuration.HasTimeSpan)
+            {
+                slider.Value = 0;
+                slider.Maximum = mediaPlayer.NaturalDuration.TimeSpan.Ticks;
+            }
+        }
+        private void PlayNextSong()
+        {
+            if (Settings.Repeat)
+            {
+                ine(audio.allabsolutepaths[songpathindex]);
+            }
+            if (!Settings.Shuffle)
+            {
+                try
+                {
+                    ine(audio.allabsolutepaths[songpathindex += 1]); // Не позволяем listbox'у выйти за пределы значений
+                }
+                catch
+                {
+                    ine(audio.allabsolutepaths[0]);
+                }
+            }
+            if (Settings.Shuffle)
+            {
+                Random randomsong = new Random();
+                int nowsongindexnumber = -1;
+                try
+                {
+                    nowsongindexnumber = randomsong.Next(0, audio.allabsolutepaths.Count);
+
+                    int itemnumber = 0;
+                    while (itemnumber < audio.allabsolutepaths.Count)
+                    {
+                        if (!AlreadyPlayedSongs.Contains(nowsongindexnumber))
+                        {
+                            AlreadyPlayedSongs.Add(nowsongindexnumber);
+                            ine(audio.allabsolutepaths[nowsongindexnumber]);
+                        }
+                        itemnumber++;
+                    }
+                    AlreadyPlayedSongs.Clear();
+
+
+                }
+                catch
+                {
+                    PlayNextSong();
+                }
+                
+                
+            }
+
         }
 
-        //E78B - Search E96F E970 is arrows E768 E769 Play/Pause E8EE - Repeat ED25 - Foledr E790 - Color E793 - Sun
     }
 }

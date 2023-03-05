@@ -9,14 +9,8 @@ using System.Windows.Media;
 
 namespace PR3_player
 {
-    public class Play
+    public class Play : MainWindow
     {
         
-
-        public void startplay(string path)
-        {
-
-            
-        }
     }
 }

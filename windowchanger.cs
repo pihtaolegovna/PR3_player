@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PR3_player
 {
-    internal class Finder
+    internal class windowchanger : MainWindow
     {
 
     }
