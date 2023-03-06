@@ -21,19 +21,19 @@ namespace PR3_player
         public static bool Repeat;
         public static bool Shuffle;
         public static string OpenedDirectory;
-        public static int Color_s;
+        public static int Color_s; // BorderBrush вменяемо не получилось конвертировать из string. Так что сохраняю число, а потом конвертирую индекс в цвет
         public static int colorcount;
 
-        
+
 
 
         public static void Save()
         {
-
+            // Цвет в число
             if (Color == Brushes.Violet) Color_s = 1;
             if (Color == Brushes.GreenYellow) Color_s = 2;
             if (Color == Brushes.White) Color_s = 3;
-            if (Color == Brushes.Black) Color_s = 3;
+            if (Color == Brushes.Black) Color_s = 3; // Храним один и тот же индекс, все равно потом перепроврять
             if (Color == Brushes.Red) Color_s = 4;
             if (Color == Brushes.Blue) Color_s = 5;
             if (Color == Brushes.Yellow) Color_s = 6;
@@ -44,8 +44,6 @@ namespace PR3_player
             {
                 DarkTheme,
                 Color_s,
-                Repeat,
-                Shuffle,
                 OpenedDirectory
             };
 
@@ -55,23 +53,13 @@ namespace PR3_player
 
         public static void Load()
         {
-            
-
-
             if (File.Exists("D:/ProgramData/Dno_player/settings.json"))
             {
                 var json = File.ReadAllText("D:/ProgramData/Dno_player/settings.json");
                 var settings = JsonConvert.DeserializeObject<dynamic>(json);
-
-                
-
-
                 DarkTheme = settings.DarkTheme;
-
-
                 Color_s = settings.Color_s;
                 colorcount = Color_s;
-
                 switch (Color_s - 1)
                 {
                     case 1: Color = Brushes.Violet; break;
@@ -88,11 +76,9 @@ namespace PR3_player
                     case 7: Color = Brushes.Green; break;
                     case 8: Color = Brushes.Navy; break;
                 }
-
-                Repeat = settings.Repeat;
-                Shuffle = settings.Shuffle;
+                Repeat = false;
+                Shuffle = false;
                 OpenedDirectory = settings.OpenedDirectory;
-
             }
             else makeifnot();
 
@@ -171,7 +157,7 @@ namespace PR3_player
             OpenedDirectory = "l";
 
             Save();
-            Load();
+            Load(); // тут же пишем и читаем
         }
     }
 }

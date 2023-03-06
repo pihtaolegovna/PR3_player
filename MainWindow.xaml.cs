@@ -11,6 +11,7 @@ using System.Linq;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
+using TagLib.Asf;
 
 namespace PR3_player
 {
@@ -167,7 +168,7 @@ namespace PR3_player
                 }
                 audioListBox.ItemsSource = audio.allnames;
             }
-            ine(audio.allabsolutepaths[songpathindex]);
+            if (!(path == "l") && (!(path==null))) ine(audio.allabsolutepaths[songpathindex]); // При неблагоприятном исходе увидим прекрасное открытое окошько и на этом все
         }
         public void ine(string path)
         {
@@ -217,6 +218,7 @@ namespace PR3_player
 
 
             timespan = TimeSpanExtractor(songpath);
+            slider.Maximum = TimeSpanExtractor(songpath).TotalSeconds;
 
 
 
@@ -243,18 +245,12 @@ namespace PR3_player
             int minutes = seconds / 60;
             seconds %= 60;
             
-
             if (!slidercapture)
             {
                 progress.Value = mediaPlayer.Position.Ticks;
                 NowTimer.Text = $"{minutes}:{(seconds < 10 ? $"0{seconds}" : $"{seconds}")}";
             }
-                
-                
-
-            
-
-
+            if (mediaPlayer.Position.TotalSeconds >= timespan.TotalSeconds) NowTimer.Text = EndTimer.Text;
             CommandManager.InvalidateRequerySuggested();
         }
         private void Next_Click(object sender, RoutedEventArgs e)
@@ -263,10 +259,14 @@ namespace PR3_player
         }
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            try { ine(audio.allabsolutepaths[songpathindex += 1]); }
+            try 
+            {
+                if (songpathindex == 0) songpathindex += 1; 
+                ine(audio.allabsolutepaths[songpathindex -= 1]);
+            }
             catch
             {
-                try { ine(audio.allabsolutepaths[songpathindex += 1]); }
+                try { ine(audio.allabsolutepaths[0]); }
                 catch { ine(audio.allabsolutepaths[songpathindex += 1]);}
             }
         } 
@@ -286,38 +286,10 @@ namespace PR3_player
             }
             
         }
-        private void audioListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            try
-            {
-                ine(audio.foundeditems[audioListBox.SelectedIndex]);
-            }
-            catch
-            {
-                // Когда список пустой при поиске, не пытаемся ничего запустить. Корень проблемы при запуске без поиска
-                if (audioListBox.SelectedIndex > -1) ine(audio.allabsolutepaths[audioListBox.SelectedIndex]);
-
-            }
-        }
-        private void Finder_GotFocus(object sender, RoutedEventArgs e)
-        {
-            if (Finder.Text == "Поиск") Finder.Text = null; // Очищаем поиск от "Поиск" при нажатии, но при условии, что он никак не был задействован. Иначе список будет пустым
-
-        }
-        void mediaPlayer_MediaEnded(object sender, EventArgs e)
-        {
-            slider.Value = 0;
-            if (Settings.Repeat)
-            {
-                ine(songpath);
-            }
-            else PlayNextSong();
-        }
         private void Shuffle_Click(object sender, RoutedEventArgs e)
         {
-            
-
-            if (Settings.Shuffle) {
+            if (Settings.Shuffle)
+            {
                 Shuffle.Foreground = Brushes.Gray;
                 Settings.Shuffle = false;
             }
@@ -327,9 +299,9 @@ namespace PR3_player
                 Settings.Shuffle = true;
             }
             AlreadyPlayedSongs.Clear();
-        }
+        } // Чем то мы с тобой похожи
         private void Repeat_Click(object sender, RoutedEventArgs e)
-        {
+        { // Мы с тобой одно и то же..
             if (Settings.Repeat)
             {
                 Repeat.Foreground = Brushes.Gray;
@@ -341,27 +313,50 @@ namespace PR3_player
                 Repeat.Foreground = Settings.Color;
                 Settings.Repeat = true;
             }
-            
+
         }
+        private void audioListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                ine(audio.foundeditems[audioListBox.SelectedIndex]);
+            }
+            catch
+            {
+                // Когда список пустой при поиске, не пытаемся ничего запустить. Корень проблемы при запуске без поиска
+                if (audioListBox.SelectedIndex > -1) ine(audio.allabsolutepaths[audioListBox.SelectedIndex]);
+            }
+        }
+        private void Finder_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (Finder.Text == "Поиск") Finder.Text = null; // Очищаем поиск от "Поиск" при нажатии, но при условии, что он никак не был задействован. Иначе список будет пустым. Прикольна что самостоятельно набранный текст "Поиск" он потом не сотрет при нажатии, но жить можно
+        }
+        void mediaPlayer_MediaEnded(object sender, EventArgs e)
+        {
+            slidercapture = true;
+            if (Settings.Repeat)
+            {
+                ine(songpath); // Эта переменная нам дает именно при окончании песни перезапустить ее
+            }
+            
+            else PlayNextSong();
+        }
+        
         private void slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            progress.Value = slider.Value;
-
+            // Это просто волшебство на вид. Мы делим timespan на десять мильонав чтобы сопоставить со зачением слайдера и менять значение прогрессбара да и выводить при взаимодействии с ним время музыки, а не позиции медиаплеера. Так он истошно не вопит а продолжает играть, как и полагается в аудиоплеерах(в моей голове)
+            progress.Value = slider.Value; 
             int seconds = Convert.ToInt32(Math.Round(slider.Value / 10000000));
             long minutes = seconds / 60;
             seconds %= 60;
-
             NowTimer.Text = $"{minutes}:{(seconds < 10 ? $"0{seconds}" : $"{seconds}")}";
-
-
-
-            slidercapture = true;
-            
+            slidercapture = true; // Трогаем, меняем источник прогрессбара и текущего времени
         }
         private void mediaPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
         {
+            // А мало ли
             mediaPlayer.Stop();
-            if (!Settings.Repeat) PlayNextSong();
+            PlayNextSong();
         }
         private void mediaPlayer_MediaOpened(object sender, RoutedEventArgs e)
         {
@@ -374,18 +369,20 @@ namespace PR3_player
         }
         private void PlayNextSong() // не кнопка, а отдельный метод, поскольку вызывается аж 4 раза, в том числе рекурсией
         {
-            if (Settings.Repeat)
+            if (Settings.Repeat && !Settings.Shuffle)
             {
                 ine(audio.allabsolutepaths[songpathindex]);
             }
             if (!Settings.Shuffle)
             {
+                AlreadyPlayedSongs.Clear();
                 try
                 {
                     ine(audio.allabsolutepaths[songpathindex += 1]); // Не позволяем listbox'у выйти за пределы значений
                 }
                 catch
                 {
+                    songpathindex = 0;
                     ine(audio.allabsolutepaths[0]);
                 }
             }
@@ -395,21 +392,22 @@ namespace PR3_player
                 int nowsongindexnumber = -1;
                 try
                 {
-                    nowsongindexnumber = randomsong.Next(0, audio.allabsolutepaths.Count);
-
-                    int itemnumber = 0;
-                    while (itemnumber < audio.allabsolutepaths.Count)
+                    nowsongindexnumber = -1;
+                    if (!AlreadyPlayedSongs.Contains(-1)) AlreadyPlayedSongs.Add(-1);
+                    
+                    while (AlreadyPlayedSongs.Contains(nowsongindexnumber))
                     {
-                        if (!AlreadyPlayedSongs.Contains(nowsongindexnumber))
+                        if (AlreadyPlayedSongs.Count > audio.allabsolutepaths.Count)
                         {
-                            AlreadyPlayedSongs.Add(nowsongindexnumber);
-                            ine(audio.allabsolutepaths[nowsongindexnumber]);
+                            AlreadyPlayedSongs.Clear();
+
                         }
-                        itemnumber++;
+                        nowsongindexnumber = randomsong.Next(0, audio.allabsolutepaths.Count);
                     }
-                    AlreadyPlayedSongs.Clear();
 
-
+                    AlreadyPlayedSongs.Add(nowsongindexnumber);
+                    ine(audio.allabsolutepaths[nowsongindexnumber + 1]);
+                    
                 }
                 catch
                 {
@@ -432,6 +430,12 @@ namespace PR3_player
         // Minimize
         private void CommandBinding_Executed_Minimize(object sender, ExecutedRoutedEventArgs e)
         {
+            if (listgrid.Width == new GridLength(2, GridUnitType.Star))
+            {
+                listgrid.Width = new GridLength(2, GridUnitType.Star);
+                listgrid.MinWidth = 180;
+            }
+            Player.Width = Player.ActualWidth;
             SystemCommands.MinimizeWindow(this);
         }
         // Maximize
@@ -447,7 +451,7 @@ namespace PR3_player
         // Для закрытия
         private void CommandBinding_Executed_Close(object sender, ExecutedRoutedEventArgs e)
         {
-            Settings.Save();
+            Settings.Save(); // Звучит удобно и логично
             SystemCommands.CloseWindow(this);
         }
         // Отвечает за смену кнопки во весь экран/Вид в окне
@@ -481,6 +485,20 @@ namespace PR3_player
         private void slider_MouseLeave(object sender, MouseEventArgs e)
         {
             slidercapture = false;
+        }
+
+        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (ActualWidth <= 350)
+            {
+                listgrid.MinWidth = 0;
+                listgrid.Width = new GridLength(0);
+            }
+            if (ActualWidth > 400)
+            {
+                listgrid.MinWidth = 100;
+                listgrid.Width = new GridLength(2, GridUnitType.Star);
+            }
         }
     }
 }
