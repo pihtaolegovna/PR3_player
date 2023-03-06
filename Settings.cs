@@ -136,7 +136,7 @@ namespace PR3_player
             {
                 if (change)
                 {
-                    Background = Brushes.White;
+                    Background = Brushes.BlanchedAlmond;
                     DarkTheme = false;
                 }
                 else Background = Brushes.Black;
@@ -149,7 +149,7 @@ namespace PR3_player
                     Background = Brushes.Black;
                     DarkTheme = true;
                 }
-                else Background = Brushes.White;
+                else Background = Brushes.BlanchedAlmond;
             }
 
 

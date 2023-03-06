@@ -22,7 +22,7 @@
                         <ControlTemplate TargetType="Button">
                             <Grid x:Name="LayoutRoot" Background="Transparent" Width="30" Height="30">
                                 <TextBlock x:Name="Color" Text="{TemplateBinding Content}" FontFamily="Segoe MDL2 Assets" FontSize="8" 
-                                  Foreground="Gray" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                  Foreground="{Binding Foreground, ElementName=header}" HorizontalAlignment="Center" VerticalAlignment="Center"
                                    RenderOptions.ClearTypeHint="Auto" TextOptions.TextRenderingMode="Aliased"  TextOptions.TextFormattingMode="Display"/>
                             </Grid>
                             <ControlTemplate.Triggers>
@@ -107,7 +107,7 @@
 
     <Border x:Name="MainWindowBorder" BorderBrush="{Binding Color}" BorderThickness="0" >
 
-        <Grid x:Name="parentContainer" Background="White">
+        <Grid x:Name="parentContainer" Background="{Binding Background, ElementName=themechanger}">
             <Grid.RowDefinitions>
                 <RowDefinition Height ="Auto"/>
                 <RowDefinition Height ="*"/>
@@ -140,23 +140,23 @@
                 <Grid x:Name="Player" Grid.Column="2" MinWidth="250">
                     <Border BorderBrush="Black" BorderThickness="0"  Grid.Column="1"/>
 
-                    <Button  Style="{StaticResource MyButtonStyle}" Name="themechanger"  FontFamily="Segoe MDL2 Assets" Content="&#xE793;" HorizontalAlignment="Right" Foreground="YellowGreen"  Margin="210,0,5,95"  Grid.Column="1" VerticalAlignment="Bottom" Width="30" Height="30" FontSize="20" Click="Theme_Changer"/>
+                    <Button  Style="{StaticResource MyButtonStyle}" Name="themechanger"  FontFamily="Segoe MDL2 Assets" Content="&#xE793;" HorizontalAlignment="Right" Foreground="{Binding Foreground, ElementName=header}"  Margin="210,0,5,95"  Grid.Column="1" VerticalAlignment="Bottom" Width="30" Height="30" FontSize="20" Click="Theme_Changer"/>
 
-                    <Button x:Name="opener" Style="{StaticResource MyButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xED25;" Foreground="YellowGreen"  Margin="240,0,5,60"  Grid.Column="1"  VerticalAlignment="Bottom" Width="30" Height="30" FontSize="20" HorizontalAlignment="Right"  Click="FolderOpening"/>
+                    <Button x:Name="opener" Style="{StaticResource MyButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xED25;" Foreground="{Binding Foreground, ElementName=header}" Background="{Binding Background, ElementName=themechanger}" Margin="240,0,5,60"  Grid.Column="1"  VerticalAlignment="Bottom" Width="30" Height="30" FontSize="20" HorizontalAlignment="Right"  Click="FolderOpening"/>
 
-                    <Button x:Name="ChangeColor" Style="{StaticResource MyButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE790;" Foreground="YellowGreen" HorizontalAlignment="Right" Margin="210,0,5,130"  Grid.Column="1"  VerticalAlignment="Bottom" Height="30"  Width="30" FontSize="20"  Click="changeColor" FontWeight="Bold"/>
+                    <Button x:Name="ChangeColor" Style="{StaticResource MyButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE790;" Foreground="{Binding Foreground, ElementName=header}" HorizontalAlignment="Right" Margin="210,0,5,130"  Grid.Column="1"  VerticalAlignment="Bottom" Height="30"  Width="30" FontSize="20"  Click="changeColor" FontWeight="Bold"/>
 
-                    <Button x:Name="Shuffle" Style="{StaticResource MyButtonStyle}" Foreground="YellowGreen" HorizontalAlignment="Center" Margin="-190,230,0,5"  VerticalAlignment="Bottom" Width="40" FontSize="20"  Grid.Column="1" FontWeight="Bold" Height="39" Click="Shuffle_Click" FontFamily="Segoe MDL2 Assets" Content="&#xE8B1;"/>
+                    <Button x:Name="Shuffle" Style="{StaticResource MyButtonStyle}" Foreground="{Binding Foreground, ElementName=header}" HorizontalAlignment="Center" Margin="-190,230,0,5"  VerticalAlignment="Bottom" Width="40" FontSize="20"  Grid.Column="1" FontWeight="Bold" Height="39" Click="Shuffle_Click" FontFamily="Segoe MDL2 Assets" Content="&#xE8B1;"/>
 
-                    <Button x:Name="Next" Style="{StaticResource MyButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE970;" Foreground="YellowGreen" HorizontalAlignment="Center" Margin="95,0,0,5"  Grid.Column="1"  VerticalAlignment="Bottom" Width="40" FontWeight="Bold" Height="40" Click="Next_Click"/>
+                    <Button x:Name="Next" Style="{StaticResource MyButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE970;" Foreground="{Binding Foreground, ElementName=header}" HorizontalAlignment="Center" Margin="95,0,0,5"  Grid.Column="1"  VerticalAlignment="Bottom" Width="40" FontWeight="Bold" Height="40" Click="Next_Click"/>
 
-                    <Button x:Name="Pause" Style="{StaticResource MyButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE769;" Foreground="YellowGreen" HorizontalAlignment="Center" Margin="0,0,0,5"  Grid.Column="1"  VerticalAlignment="Bottom" Width="40" FontWeight="Bold" Height="40" FontSize="25" Click="Pause_Click" />
+                    <Button x:Name="Pause" Style="{StaticResource MyButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE769;" Foreground="{Binding Foreground, ElementName=header}" HorizontalAlignment="Center" Margin="0,0,0,5"  Grid.Column="1"  VerticalAlignment="Bottom" Width="40" FontWeight="Bold" Height="40" FontSize="25" Click="Pause_Click" />
 
-                    <Button x:Name="Back" Style="{StaticResource MyButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE96F;" Foreground="YellowGreen" HorizontalAlignment="Center" Margin="-95,0,0,5" Grid.Column="1"  VerticalAlignment="Bottom" Width="40" FontWeight="Bold" Height="40" Click="Back_Click"/>
+                    <Button x:Name="Back" Style="{StaticResource MyButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE96F;" Foreground="{Binding Foreground, ElementName=header}" HorizontalAlignment="Center" Margin="-95,0,0,5" Grid.Column="1"  VerticalAlignment="Bottom" Width="40" FontWeight="Bold" Height="40" Click="Back_Click"/>
 
-                    <Button x:Name="Repeat" Style="{StaticResource MyButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE8EE;" Foreground="YellowGreen" HorizontalAlignment="Stretch" Margin="190,0,0,5"  Grid.Column="1" VerticalAlignment="Bottom" Width="40" FontSize="17" FontWeight="Bold" Height="40" Click="Repeat_Click"/>
+                    <Button x:Name="Repeat" Style="{StaticResource MyButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE8EE;" Foreground="{Binding Foreground, ElementName=header}" HorizontalAlignment="Stretch" Margin="190,0,0,5"  Grid.Column="1" VerticalAlignment="Bottom" Width="40" FontSize="17" FontWeight="Bold" Height="40" Click="Repeat_Click"/>
 
-                    <Button Name="BlankCover" Style="{StaticResource MyButtonStyle2}" Grid.Column="1" Margin="5,0,5,160" FontFamily="Segoe MDL2 Assets" Content="&#xE8D6;" FontSize="120" BorderThickness="1" Background="Transparent" MinHeight="100" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Focusable="False"/>
+                    <Button Name="BlankCover" Foreground="{Binding Foreground, ElementName=header}" Style="{StaticResource MyButtonStyle2}" Grid.Column="1" Margin="5,0,5,160" FontFamily="Segoe MDL2 Assets" Content="&#xE8D6;" FontSize="120" BorderThickness="1" Background="Transparent" MinHeight="100" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Focusable="False"/>
 
                     <Image x:Name="SongImage" Grid.Column="1" Margin="5,0,5,160" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
 
@@ -164,21 +164,22 @@
 
 
 
-                    <TextBlock x:Name="SongName" FontFamily="Century Gothic" FontWeight="DemiBold" Grid.Column="1"  Foreground="YellowGreen" HorizontalAlignment="Left" Margin="5,20,35,115" TextWrapping="Wrap" FontSize="15" Text="Song Name" VerticalAlignment="Bottom" Height="40"/>
+                    <TextBlock x:Name="SongName" FontFamily="Century Gothic" FontWeight="DemiBold" Grid.Column="1"  Foreground="{Binding Foreground, ElementName=header}" HorizontalAlignment="Left" Margin="5,20,35,115" TextWrapping="Wrap" FontSize="15" Text="Song Name" VerticalAlignment="Bottom" Height="40"/>
 
-                    <TextBlock x:Name="ArtistName" FontFamily="Century Gothic" Grid.Column="1"  Foreground="YellowGreen" Text="Artist Name"  HorizontalAlignment="Left" Margin="5,165,40,95"  VerticalAlignment="Bottom" Height="22"/>
+                    <TextBlock x:Name="ArtistName" FontFamily="Century Gothic" Grid.Column="1"  Foreground="{Binding Foreground, ElementName=header}" Text="Artist Name"  HorizontalAlignment="Left" Margin="5,165,40,95"  VerticalAlignment="Bottom" Height="22"/>
 
-                    <TextBlock x:Name="AlbumName" FontFamily="Century Gothic" Grid.Column="1"  Foreground="YellowGreen" Text="Album Name"  HorizontalAlignment="Left" Margin="5,200,20,75"  VerticalAlignment="Bottom" Height="23" Width="190"/>
+                    <TextBlock x:Name="AlbumName" FontFamily="Century Gothic" Grid.Column="1"  Foreground="{Binding Foreground, ElementName=header}" Text="Album Name"  HorizontalAlignment="Left" Margin="5,200,20,75"  VerticalAlignment="Bottom" Height="23" Width="190"/>
 
-                    <TextBlock x:Name="Year" FontFamily="Century Gothic" Grid.Column="1"  Foreground="YellowGreen" Text="Year Name"  HorizontalAlignment="Left" Margin="5,230,20,55"  VerticalAlignment="Bottom" Height="23" Width="190"/>
+                    <TextBlock x:Name="Year" FontFamily="Century Gothic" Grid.Column="1"  Foreground="{Binding Foreground, ElementName=header}" Text="Year Name"  HorizontalAlignment="Left" Margin="5,230,20,55"  VerticalAlignment="Bottom" Height="23" Width="190"/>
 
-                    <TextBlock x:Name="NowTimer" FontFamily="Century Gothic" Grid.Column="1"  Foreground="YellowGreen" Text="Now" Margin="5,0,209,20" VerticalAlignment="Bottom" Height="23" HorizontalAlignment="Left"/>
+                    <TextBlock x:Name="NowTimer" FontFamily="Century Gothic" Grid.Column="1"  Foreground="{Binding Foreground, ElementName=header}" Text="Now" Margin="5,0,209,20" VerticalAlignment="Bottom" Height="23" HorizontalAlignment="Left"/>
 
-                    <TextBlock x:Name="EndTimer" FontFamily="Century Gothic" Grid.Column="1"  Foreground="YellowGreen" Text="End" Margin="213,0,5,20" VerticalAlignment="Bottom" Height="23" HorizontalAlignment="Right"/>
+                    <TextBlock x:Name="EndTimer" FontFamily="Century Gothic" Grid.Column="1"  Foreground="{Binding Foreground, ElementName=header}" Text="End" Margin="213,0,5,20" VerticalAlignment="Bottom" Height="23" HorizontalAlignment="Right"/>
 
-                    <Slider x:Name="slider" Grid.Column="1"  Margin="5,0,5,52" Minimum="0" Height="10"  VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Background="Transparent" BorderBrush="#00000000" Foreground="#00000000" Opacity="0" Panel.ZIndex="1" ValueChanged="slider_ValueChanged"/>
-                    
-                    <ProgressBar  x:Name="progress" Background="Gray"  Grid.Column="1"  Margin="5,0,5,47" Minimum="0" Height="10"  VerticalAlignment="Bottom" HorizontalAlignment="Stretch" BorderBrush="Gray"  />
+                    <Slider x:Name="slider" Grid.Column="1"  Margin="0,0,0,50" Minimum="0" Height="10"   VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Background="Transparent" BorderBrush="#00000000" Foreground="#00000000" Opacity="0" Panel.ZIndex="1" ValueChanged="slider_ValueChanged" LostMouseCapture="slider_LostMouseCapture" MouseEnter="slider_MouseEnter" MouseLeave="slider_MouseLeave"/>
+
+                    <ProgressBar  x:Name="progress" Foreground="{Binding Foreground, ElementName=header}" Background="Transparent"  Grid.Column="1"  Margin="5,0,5,47" Minimum="0" Height="10"  VerticalAlignment="Bottom" HorizontalAlignment="Stretch" BorderBrush="Transparent"  />
+                    <Rectangle x:Name="ProgressFormForRoundedCorners"  HorizontalAlignment="Stretch" Height="14" Margin="3,0,3,45" Stroke="{Binding Background, ElementName=themechanger}" VerticalAlignment="Bottom" RadiusX="5" RadiusY="5" StrokeThickness="2"/>
 
 
 
@@ -187,17 +188,26 @@
                 <GridSplitter Grid.Column="1" Width="3" Foreground="Transparent" HorizontalAlignment="Center" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" Opacity="0"/>
 
                 <Grid x:Name="List" Grid.Column="0">
-                    <ListBox x:Name="audioListBox" BorderThickness="1" ScrollViewer.HorizontalScrollBarVisibility="Hidden" MinWidth="170" BorderBrush="Transparent" FontFamily="Century Gothic" ScrollViewer.VerticalScrollBarVisibility="Hidden" Foreground="YellowGreen" Background="Transparent" Grid.Row="1" Margin="10,30,0,10" HorizontalAlignment="Stretch" SelectionChanged="audioListBox_SelectionChanged">
+                    <ListBox SelectionMode="Single" x:Name="audioListBox" BorderThickness="1" ScrollViewer.HorizontalScrollBarVisibility="Hidden" MinWidth="170" BorderBrush="Transparent" FontFamily="Century Gothic" ScrollViewer.VerticalScrollBarVisibility="Hidden" Foreground="{Binding Foreground, ElementName=header}" Background="Transparent" Grid.Row="1" Margin="10,30,0,10" HorizontalAlignment="Stretch" SelectionChanged="audioListBox_SelectionChanged">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="Transparent" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding}"/>
+                                <TextBlock  Text="{Binding}"/>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
 
-                    <Button x:Name="FinderIcon" Grid.Column="0" BorderThickness="0" FontFamily="Segoe MDL2 Assets" Content="&#xF78B;" FontSize="12" Foreground="YellowGreen" Background="Transparent" HorizontalAlignment="Left" Margin="10,0,0,0" Grid.Row="1" VerticalAlignment="Top" Width="20" FontWeight="Bold" Height="20"/>
+                    <Button x:Name="FinderIcon" Grid.Column="0" BorderThickness="0" FontFamily="Segoe MDL2 Assets" Content="&#xF78B;" FontSize="12" Foreground="{Binding Foreground, ElementName=header}" Background="Transparent" HorizontalAlignment="Left" Margin="10,0,0,0" Grid.Row="1" VerticalAlignment="Top" Width="20" FontWeight="Bold" Height="20"/>
 
-                    <TextBox x:Name="Finder" BorderThickness="0" Grid.Column="0" MinWidth="150" Text="Поиск"  Foreground="YellowGreen" Margin="30,0,0,0" Grid.Row="1" TextWrapping="Wrap"  VerticalAlignment="Top" TextChanged="TextBox_TextChanged" BorderBrush="Black" Height="20" GotFocus="Finder_GotFocus" HorizontalAlignment="Left" FontSize="16" FontFamily="Century Gothic" FontWeight="DemiBold"/>
+                    <TextBox x:Name="Finder" BorderThickness="0" Grid.Column="0" MinWidth="150" Text="Поиск"  Foreground="{Binding Foreground, ElementName=header}" Background="{Binding Background, ElementName=themechanger}" Margin="30,0,0,0" Grid.Row="1" TextWrapping="Wrap"  VerticalAlignment="Top" TextChanged="TextBox_TextChanged" BorderBrush="Black" Height="20" GotFocus="Finder_GotFocus" HorizontalAlignment="Left" FontSize="16" FontFamily="Century Gothic" FontWeight="DemiBold"/>
 
                     
                 </Grid>

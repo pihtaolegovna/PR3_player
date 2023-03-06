@@ -24,6 +24,7 @@ namespace PR3_player
         static bool NowPlaying;
         static string songpath = "";
         TimeSpan timespan;
+        static bool slidercapture;
 
         public MainWindow()
         {
@@ -38,46 +39,7 @@ namespace PR3_player
 
 
         }
-        // Can execute
-        private void CommandBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = true;
-        }
-        // Minimize
-        private void CommandBinding_Executed_Minimize(object sender, ExecutedRoutedEventArgs e)
-        {
-            SystemCommands.MinimizeWindow(this);
-        }
-        // Maximize
-        private void CommandBinding_Executed_Maximize(object sender, ExecutedRoutedEventArgs e)
-        {
-            SystemCommands.MaximizeWindow(this);
-        }
-        // Restore
-        private void CommandBinding_Executed_Restore(object sender, ExecutedRoutedEventArgs e)
-        {
-            SystemCommands.RestoreWindow(this);
-        }
-        // Close
-        private void CommandBinding_Executed_Close(object sender, ExecutedRoutedEventArgs e)
-        {
-            Settings.Save();
-            SystemCommands.CloseWindow(this);
-        }
-        // State change
-        private void MainWindowStateChangeRaised(object sender, EventArgs e)
-        {
-            if (WindowState == WindowState.Maximized)
-            {
-                RestoreButton.Visibility = Visibility.Visible;
-                MaximizeButton.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                RestoreButton.Visibility = Visibility.Collapsed;
-                MaximizeButton.Visibility = Visibility.Visible;
-            }
-        }
+
         private void Theme_Changer(object sender, RoutedEventArgs e)
         {
             setview(false, true);
@@ -118,60 +80,9 @@ namespace PR3_player
         }
         public void setview(bool colorchange, bool themechange)
         {
-            var NowBackground = Settings.ChangeTheme(themechange);
-            var NowColor = Settings.ChangeColor(colorchange);
+            themechanger.Background = Settings.ChangeTheme(themechange);
+            header.Foreground = Settings.ChangeColor(colorchange);
 
-            Finder.Text = null;
-
-            Finder.Text = "Поиск";
-            parentContainer.Background = NowBackground;
-            header.Foreground = NowColor;
-
-            foreach (var ListBox in List.Children.OfType<ListBox>())
-            {
-                ListBox.Foreground = NowColor;
-            }
-
-            foreach (var TextBox in List.Children.OfType<TextBox>())
-            {
-                TextBox.Foreground = NowColor;
-                TextBox.Background = NowBackground;
-            }
-
-            foreach (var TextBlock in List.Children.OfType<TextBlock>())
-            {
-                TextBlock.Foreground = NowColor;
-            }
-
-            foreach (var button in List.Children.OfType<Button>())
-            {
-                button.Background = NowBackground;
-                button.Foreground = NowColor;
-                button.BorderBrush = Brushes.Transparent;
-            }
-            foreach (var ListBox in Player.Children.OfType<ListBox>())
-            {
-                ListBox.Foreground = NowColor;
-            }
-
-            foreach (var TextBox in Player.Children.OfType<TextBox>())
-            {
-                TextBox.Foreground = NowColor;
-                TextBox.Background = NowBackground;
-            }
-
-            foreach (var TextBlock in Player.Children.OfType<TextBlock>())
-            {
-                TextBlock.Foreground = NowColor;
-            }
-
-            foreach (var button in Player.Children.OfType<Button>())
-            {
-                button.Background = NowBackground;
-                button.Foreground = NowColor;
-                button.BorderBrush = Brushes.Transparent;
-            }
-            progress.Foreground = NowColor;
             if (!Settings.Shuffle) Shuffle.Foreground = Brushes.Gray;
             if (!Settings.Repeat) Shuffle.Foreground = Brushes.Gray;
 
@@ -330,9 +241,18 @@ namespace PR3_player
             int seconds = Convert.ToInt32(mediaPlayer.Position.TotalSeconds);
             int minutes = seconds / 60;
             seconds %= 60;
-            NowTimer.Text = $"{minutes}:{(seconds < 10 ? $"0{seconds}" : $"{seconds}")}";
+            
 
-            progress.Value = mediaPlayer.Position.Ticks;
+            if (!slidercapture)
+            {
+                progress.Value = mediaPlayer.Position.Ticks;
+                NowTimer.Text = $"{minutes}:{(seconds < 10 ? $"0{seconds}" : $"{seconds}")}";
+            }
+                
+                
+
+            
+
 
             CommandManager.InvalidateRequerySuggested();
         }
@@ -424,8 +344,18 @@ namespace PR3_player
         }
         private void slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            mediaPlayer.Position = new TimeSpan(Convert.ToInt64(slider.Value));
-            progress.Value  = mediaPlayer.Position.Ticks;
+            progress.Value = slider.Value;
+
+            int seconds = Convert.ToInt32(Math.Round(slider.Value / 10000000));
+            long minutes = seconds / 60;
+            seconds %= 60;
+
+            NowTimer.Text = $"{minutes}:{(seconds < 10 ? $"0{seconds}" : $"{seconds}")}";
+
+
+
+            slidercapture = true;
+            
         }
         private void mediaPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
         {
@@ -434,13 +364,14 @@ namespace PR3_player
         }
         private void mediaPlayer_MediaOpened(object sender, RoutedEventArgs e)
         {
+            slidercapture = false; 
             if (mediaPlayer.NaturalDuration.HasTimeSpan)
             {
                 slider.Value = 0;
                 slider.Maximum = mediaPlayer.NaturalDuration.TimeSpan.Ticks;
             }
         }
-        private void PlayNextSong()
+        private void PlayNextSong() // не кнопка, а отдельный метод, поскольку вызывается аж 4 раза, в том числе рекурсией
         {
             if (Settings.Repeat)
             {
@@ -489,5 +420,66 @@ namespace PR3_player
 
         }
 
+
+
+        // Шапка то на WindowsChrome, поэтому еще пара страшных методов для вменяемой работы кнопок и шапки
+        // Can execute
+        private void CommandBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+        // Minimize
+        private void CommandBinding_Executed_Minimize(object sender, ExecutedRoutedEventArgs e)
+        {
+            SystemCommands.MinimizeWindow(this);
+        }
+        // Maximize
+        private void CommandBinding_Executed_Maximize(object sender, ExecutedRoutedEventArgs e)
+        {
+            SystemCommands.MaximizeWindow(this);
+        }
+        // Restore
+        private void CommandBinding_Executed_Restore(object sender, ExecutedRoutedEventArgs e)
+        {
+            SystemCommands.RestoreWindow(this);
+        }
+        // Для закрытия
+        private void CommandBinding_Executed_Close(object sender, ExecutedRoutedEventArgs e)
+        {
+            Settings.Save();
+            SystemCommands.CloseWindow(this);
+        }
+        // Отвечает за смену кнопки во весь экран/Вид в окне
+        private void MainWindowStateChangeRaised(object sender, EventArgs e)
+        {
+            if (WindowState == WindowState.Maximized)
+            {
+                RestoreButton.Visibility = Visibility.Visible;
+                MaximizeButton.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                RestoreButton.Visibility = Visibility.Collapsed;
+                MaximizeButton.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void slider_LostMouseCapture(object sender, MouseEventArgs e)
+        {
+            mediaPlayer.Position = new TimeSpan(Convert.ToInt64(slider.Value));
+            
+            slidercapture = false;
+        }
+
+        private void slider_MouseEnter(object sender, MouseEventArgs e)
+        {
+            slidercapture = true;
+            slider.Value = progress.Value;
+        }
+
+        private void slider_MouseLeave(object sender, MouseEventArgs e)
+        {
+            slidercapture = false;
+        }
     }
 }
