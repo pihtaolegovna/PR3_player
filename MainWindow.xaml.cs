@@ -35,6 +35,7 @@ namespace PR3_player
 
 
             setview(false, false);
+            Repeat.Foreground = Brushes.Gray;
             openfolder(Settings.OpenedDirectory);
 
 
